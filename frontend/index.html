@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Signup</title>
+</head>
+
+<body>
+
+<h2>User Signup</h2>
+
+<input id="id" placeholder="User ID">
+<input id="phone" placeholder="Phone Number">
+
+<button onclick="signup()">Signup</button>
+
+<h2>Users</h2>
+<ul id="users"></ul>
+
+<script>
+
+async function signup() {
+
+const id = document.getElementById("id").value;
+const phone = document.getElementById("phone").value;
+
+await fetch("/api/signup", {
+method: "POST",
+headers: { "Content-Type": "application/json" },
+body: JSON.stringify({ id, phone })
+});
+
+loadUsers();
+}
+
+async function loadUsers() {
+
+const res = await fetch("/api/users");
+const users = await res.json();
+
+const list = document.getElementById("users");
+list.innerHTML = "";
+
+users.forEach(u => {
+const li = document.createElement("li");
+li.innerText = u.id + " - " + u.phone;
+list.appendChild(li);
+});
+}
+
+loadUsers();
+
+</script>
+
+</body>
+</html>
