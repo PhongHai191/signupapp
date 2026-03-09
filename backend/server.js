@@ -5,10 +5,10 @@ const app = express();
 app.use(express.json());
 
 const db = mysql.createPool({
-  host: "mysql",
-  user: "root",
-  password: "password",
-  database: "appdb",
+  host: process.env.DB_HOST || "mysql",
+  user: process.env.DB_USER || "root",
+  password: process.env.DB_PASSWORD || "password",
+  database: process.env.DB_NAME || "appdb",
   waitForConnections: true,
   connectionLimit: 10
 });
