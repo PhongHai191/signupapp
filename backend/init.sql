@@ -1,0 +1,8 @@
+CREATE DATABASE IF NOT EXISTS appdb;
+
+USE appdb;
+
+CREATE TABLE IF NOT EXISTS users (
+  id VARCHAR(50),
+  phone VARCHAR(20)
+);

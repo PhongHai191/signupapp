@@ -9,45 +9,45 @@
 <h2>User Signup</h2>
 
 <input id="id" placeholder="User ID">
-<input id="phone" placeholder="Phone Number">
+<input id="phone" placeholder="Phone">
 
 <button onclick="signup()">Signup</button>
 
-<h2>Users</h2>
+<h3>Users</h3>
 <ul id="users"></ul>
 
 <script>
 
 async function signup() {
 
-const id = document.getElementById("id").value;
-const phone = document.getElementById("phone").value;
+  const id = document.getElementById("id").value
+  const phone = document.getElementById("phone").value
 
-await fetch("/api/signup", {
-method: "POST",
-headers: { "Content-Type": "application/json" },
-body: JSON.stringify({ id, phone })
-});
+  await fetch("/api/signup",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({id,phone})
+  })
 
-loadUsers();
+  loadUsers()
 }
 
-async function loadUsers() {
+async function loadUsers(){
 
-const res = await fetch("/api/users");
-const users = await res.json();
+  const res = await fetch("/api/users")
+  const data = await res.json()
 
-const list = document.getElementById("users");
-list.innerHTML = "";
+  const list = document.getElementById("users")
+  list.innerHTML=""
 
-users.forEach(u => {
-const li = document.createElement("li");
-li.innerText = u.id + " - " + u.phone;
-list.appendChild(li);
-});
+  data.forEach(u=>{
+    const li=document.createElement("li")
+    li.innerText = u.id+" - "+u.phone
+    list.appendChild(li)
+  })
 }
 
-loadUsers();
+loadUsers()
 
 </script>
 
