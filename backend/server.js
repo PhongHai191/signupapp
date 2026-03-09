@@ -12,6 +12,12 @@ const db = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10
 });
+db.query(`
+CREATE TABLE IF NOT EXISTS users (
+  id VARCHAR(50),
+  phone VARCHAR(20)
+)
+`);
 
 app.post("/api/signup", (req, res) => {
   const { id, phone } = req.body;
