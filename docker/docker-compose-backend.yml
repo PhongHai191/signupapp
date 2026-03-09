@@ -11,6 +11,9 @@ services:
       MYSQL_DATABASE: appdb
     volumes:
       - mysql_data:/var/lib/mysql
+      -  ../backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "3306:3306"
 
   backend:
     image: 529646246979.dkr.ecr.ap-southeast-2.amazonaws.com/new-repository
