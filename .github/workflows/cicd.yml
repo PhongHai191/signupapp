@@ -47,7 +47,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             ssh -o StrictHostKeyChecking=no -i ~/practice-todo.pem ec2-user@${{ secrets.BACKEND_HOST }} '
-            cd ~/project/docker
+            cd ~/signupapp
             docker compose pull backend
             docker compose up -d --no-deps backend
             '
