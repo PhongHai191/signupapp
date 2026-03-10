@@ -1,73 +1,61 @@
 name: CI/CD
 
 on:
-push:
-branches:
-- main
+  push:
+    branches:
+      - main
 
 env:
-AWS_REGION: ap-southeast-2
-ECR_REPOSITORY: new-repository
+  AWS_REGION: ap-southeast-2
+  ECR_REPOSITORY: new-repository
+  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-southeast-2.amazonaws.com
 
 jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
 
-build-and-deploy:
+    steps:
 
-runs-on: ubuntu-latest
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
-  - name: Checkout code
-    uses: actions/checkout@v4
+      - name: Login to ECR
+        uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Build and tag Docker image
+        run: |
+          docker build -t $ECR_REPOSITORY ./backend
+          docker tag $ECR_REPOSITORY:latest \
+            $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
-  - name: Configure AWS credentials
-    uses: aws-actions/configure-aws-credentials@v4
-    with:
-      aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      aws-region: ${{ env.AWS_REGION }}
+      - name: Push image to ECR
+        run: |
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
+      - name: Deploy to backend server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.BASTION_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
 
-  - name: Login to ECR
-    uses: aws-actions/amazon-ecr-login@v2
+            ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.BACKEND_HOST }} << 'EOF'
 
+              aws ecr get-login-password --region ap-southeast-2 \
+              | docker login --username AWS --password-stdin \
+              ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-southeast-2.amazonaws.com
 
-  - name: Build Docker image
-    run: |
-      docker build -t $ECR_REPOSITORY ./backend
+              cd ~/project/docker
 
+              docker compose pull backend
+              docker compose up -d --no-deps backend
 
-  - name: Tag image
-    run: |
-      docker tag $ECR_REPOSITORY:latest \
-      ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/$ECR_REPOSITORY:latest
-
-
-  - name: Push image to ECR
-    run: |
-      docker push \
-      ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/$ECR_REPOSITORY:latest
-
-
-  - name: Deploy to backend server
-    uses: appleboy/ssh-action@v1
-    with:
-      host: ${{ secrets.BASTION_HOST }}
-      username: ec2-user
-      key: ${{ secrets.EC2_SSH_KEY }}
-      script: |
-
-        ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.BACKEND_HOST }} << 'EOF'
-
-          aws ecr get-login-password --region ap-southeast-2 \
-          | docker login --username AWS --password-stdin \
-          ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-southeast-2.amazonaws.com
-
-          cd ~/project/docker
-
-          docker compose pull backend
-
-          docker compose up -d
-
-        EOF
+            EOF
