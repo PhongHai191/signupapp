@@ -48,6 +48,6 @@ jobs:
           script: |
             ssh -o StrictHostKeyChecking=no -i ~/practice-todo.pem ec2-user@${{ secrets.BACKEND_HOST }} '
             cd ~/signupapp
-            docker compose pull backend
-            docker compose up -d --no-deps backend
+            docker compose -f docker/docker-compose-backend.yml pull
+            docker compose -f docker/docker-compose-backend.yml up -d
             '
